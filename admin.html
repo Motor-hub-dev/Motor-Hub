@@ -207,15 +207,6 @@
                     <h2 class="text-3xl font-bold tracking-tight text-white">Settings</h2>
                 </div>
                 <form id="settings-form" class="max-w-3xl border border-outline-variant rounded p-8 space-y-10">
-                    
-                    <!-- Currency Exchange -->
-                    <div class="space-y-4">
-                        <h3 class="text-[10px] font-bold text-primary uppercase tracking-widest border-b border-outline-variant pb-2">Currency Exchange</h3>
-                        <div>
-                            <label class="block text-[11px] text-neutral-400 mb-2">1 USD to EGP Rate</label>
-                            <input id="set-rate" type="number" step="0.01" class="w-full bg-[#131313] border border-outline-variant focus:border-primary text-white rounded p-3 text-sm" placeholder="e.g. 50.0" data-i18n="admin_placeholder_rate" />
-                        </div>
-                    </div>
 
                     <!-- Hero Section -->
                     <div class="space-y-4">
@@ -513,14 +504,7 @@
                         </div>
                     </div>
 
-                    <!-- Color Variants Block -->
-                    <div id="v-colors-block" class="mt-8 pt-8 border-t border-outline-variant space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-[10px] font-bold text-primary uppercase tracking-widest">Color Variants</h3>
-                            <button type="button" id="btn-add-color" class="flex items-center gap-2 border border-outline-variant rounded py-1 px-3 text-primary text-[10px] uppercase font-bold hover:bg-white/5"><span class="material-symbols-outlined text-[14px]">add</span> Add Color</button>
-                        </div>
-                        <div id="v-colors-list" class="space-y-4"></div>
-                    </div>
+
 
                     <!-- Gallery Block -->
                     <div id="v-gallery-block" class="mt-8 pt-8 border-t border-outline-variant space-y-4">
@@ -535,46 +519,10 @@
                 `;
 
                 // GLOBAL STATE FOR MODAL
-                window.modalColors = data.colors ? (typeof data.colors === 'string' ? JSON.parse(data.colors) : data.colors) : (data.colors || []);
                 window.modalGlobalGalleryUrls = data.gallery ? (typeof data.gallery === 'string' ? JSON.parse(data.gallery) : data.gallery) : (data.gallery_urls || []);
                 window.modalFilesQueue = []; // { type: 'gallery'|'color', cid: null, file: File }
 
                 // RENDER FUNCTIONS
-                const renderColors = () => {
-                    const cl = document.getElementById('v-colors-list');
-                    if(!cl) return;
-                    cl.innerHTML = window.modalColors.map((c, i) => `
-                        <div class="border border-[#2b2a2a] rounded p-4 bg-[#1c1b1b] relative">
-                            <button type="button" class="absolute top-4 right-4 text-red-500 hover:text-red-400" onclick="window.removeColor(${i})"><span class="material-symbols-outlined text-sm">delete</span></button>
-                            <div class="flex items-center gap-3 mb-4">
-                                <div class="w-6 h-6 rounded-full border border-outline-variant" style="background-color: ${c.hex || '#000'}"></div>
-                                <span class="font-bold text-white">${escapeHTML(c.name_en || 'New Color')}</span>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <div>
-                                    <label class="block text-[9px] uppercase text-neutral-500 font-bold mb-1">Color</label>
-                                    <div class="flex">
-                                        <input type="color" onchange="window.updateColor(${i}, 'hex', this.value)" value="${c.hex || '#000000'}" class="w-8 h-8 rounded shrink-0 p-0 border-0 cursor-pointer" />
-                                        <input type="text" onchange="window.updateColor(${i}, 'hex', this.value)" value="${c.hex || '#000000'}" class="w-full bg-[#131313] border border-outline-variant text-white text-xs ml-2 px-2" />
-                                    </div>
-                                </div>
-                                <div><label class="block text-[9px] uppercase text-neutral-500 font-bold mb-1">Name (EN)</label><input type="text" onchange="window.updateColor(${i}, 'name_en', this.value)" value="${escapeHTML(c.name_en || '')}" class="w-full bg-[#131313] border border-outline-variant text-white text-xs px-2 py-1.5" /></div>
-                                <div><label class="block text-[9px] uppercase text-neutral-500 font-bold mb-1">Name (AR)</label><input type="text" onchange="window.updateColor(${i}, 'name_ar', this.value)" value="${escapeHTML(c.name_ar || '')}" class="w-full bg-[#131313] border border-outline-variant text-white text-xs px-2 py-1.5" /></div>
-                                <div>
-                                    <label class="block text-[9px] uppercase text-neutral-500 font-bold mb-1">Gallery (${(c.gallery_urls || []).length} imgs)</label>
-                                    <div class="flex items-center gap-2 border border-outline-variant rounded p-1 bg-[#131313] relative overflow-hidden">
-                                        <button type="button" class="text-primary text-[10px] font-bold px-2 py-1 hover:bg-white/5 w-full text-left" onclick="document.getElementById('c-upload-${i}').click()">+ Upload</button>
-                                        <input type="file" id="c-upload-${i}" multiple class="hidden" accept="image/*" onchange="window.queueColorFiles(${i}, this)" />
-                                    </div>
-                                    <div class="flex gap-1 mt-2 overflow-x-auto">
-                                       ${(c.gallery_urls || []).map(url => `<img src="${url}" class="h-6 w-6 object-cover rounded border border-outline-variant" />`).join('')}
-                                       ${window.modalFilesQueue.filter(f => f.type === 'color' && f.cid === i).map(q => `<div class="h-6 w-6 rounded bg-primary animate-pulse text-[6px] grid place-items-center text-black font-bold">NEW</div>`).join('')}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
-                };
 
                 const renderGlobalGallery = () => {
                     const gg = document.getElementById('v-gallery-preview');
@@ -592,12 +540,7 @@
                     gg.innerHTML = html;
                 };
 
-                window.updateColor = (i, prop, val) => { window.modalColors[i][prop] = val; renderColors(); };
-                window.removeColor = (i) => { window.modalColors.splice(i, 1); renderColors(); };
-                window.queueColorFiles = (i, input) => {
-                    Array.from(input.files).forEach(file => window.modalFilesQueue.push({ type: 'color', cid: i, file }));
-                    renderColors();
-                };
+
                 window.removeGlobalGallery = (i) => { window.modalGlobalGalleryUrls.splice(i, 1); renderGlobalGallery(); };
 
                 window.dragStart = (event, index, type) => {
@@ -622,10 +565,7 @@
                         const file = e.target.files[0];
                         if (file) document.getElementById('f-main-label').textContent = file.name;
                     });
-                    document.getElementById('btn-add-color').addEventListener('click', () => {
-                        window.modalColors.push({ hex: '#000000', name_en: 'New Color', name_ar: '', gallery_urls: [] });
-                        renderColors();
-                    });
+
                     const ggInput = document.getElementById('f-global-gallery');
                     if (ggInput) {
                         ggInput.addEventListener('change', (e) => {
@@ -633,7 +573,7 @@
                             renderGlobalGallery();
                         });
                     }
-                    renderColors();
+
                     renderGlobalGallery();
                 });
 
@@ -731,10 +671,7 @@
                             try {
                                 const url = await uploadImage(q.file, 'uploads', 'vehicles');
                                 if (q.type === 'gallery') window.modalGlobalGalleryUrls.push(url);
-                                if (q.type === 'color' && window.modalColors[q.cid]) {
-                                    if(!window.modalColors[q.cid].gallery_urls) window.modalColors[q.cid].gallery_urls = [];
-                                    window.modalColors[q.cid].gallery_urls.push(url);
-                                }
+
                             } catch(e) { console.error('Upload failed for file', q.file.name); }
                             completeCount++;
                             btn.textContent = "Uploading gallery... (" + completeCount + "/" + window.modalFilesQueue.length + ")";
@@ -758,7 +695,7 @@
                         description_ar: document.getElementById('f-desc-ar').value || null,
                         image_url: finalMainUrl || null,
                         gallery: window.modalGlobalGalleryUrls || [],
-                        colors: window.modalColors || [],
+
                         is_spotlight: document.getElementById('f-spot').checked,
                         upon_request: document.getElementById('f-req').checked,
                         is_sold_out: document.getElementById('f-sold').checked
@@ -1075,7 +1012,6 @@
         async function renderSettingsForm() {
             try {
                 const set = await getSettings();
-                document.getElementById('set-rate').value = set.usd_to_egp_rate || '';
                 document.getElementById('set-hero').value = set.hero_bg_url || '';
                 
                 const previewBlock = document.getElementById('set-hero-preview');
@@ -1133,7 +1069,6 @@
                 }
 
                 await updateSettings({
-                    usd_to_egp_rate: parseFloat(document.getElementById('set-rate').value),
                     hero_bg_url: finalHeroUrl,
                     map_embed_url: mapVal,
                     location_pin_link: document.getElementById('set-pin').value,

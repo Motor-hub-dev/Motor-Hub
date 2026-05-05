@@ -89,7 +89,6 @@
 
             <!-- Toggles -->
             <button id="lang-toggle" class="nav-toggle-btn">AR</button>
-            <button id="currency-toggle" class="nav-toggle-btn" data-currency="USD">USD</button>
         </div>
 
         <!-- Mobile Menu Button -->
@@ -106,7 +105,6 @@
         <a class="text-2xl font-bold uppercase text-white mb-6" href="about.html" data-i18n="nav_about">About</a>
         <a class="text-2xl font-bold uppercase text-white mb-12" href="contact.html" data-i18n="nav_contact">Contact</a>
         <button id="mobile-lang-toggle" class="nav-toggle-btn text-left mb-4 w-fit">Switch to AR</button>
-        <button id="mobile-currency-toggle" class="nav-toggle-btn text-left w-fit">Switch Currency</button>
     </div>
 
     <!-- Hero Section -->
@@ -264,8 +262,6 @@
 
         // State
         let currentLang = localStorage.getItem('lang') || 'en';
-        let currentCurrency = localStorage.getItem('currency') || 'USD';
-        let exchangeRate = 1; // Default
         let translations = {};
 
         // Fetch Data on Load
@@ -279,7 +275,6 @@
                 ]);
 
                 translations = transRes;
-                if (settings.usd_to_egp_rate) exchangeRate = settings.usd_to_egp_rate;
 
                 // Set Hero BG
                 if (settings.hero_bg_url) {
@@ -310,10 +305,6 @@
 
         // Setup Realtime Settings Subscription
         subscribeToSettings((newSettings) => {
-            if (newSettings.usd_to_egp_rate) {
-                exchangeRate = newSettings.usd_to_egp_rate;
-                updateCurrencyDisplay();
-            }
             if (newSettings.hero_bg_url) {
                 document.getElementById('hero').style.backgroundImage = `url('${newSettings.hero_bg_url}')`;
             }
@@ -428,8 +419,7 @@
 
         function formatPrice(usdPrice) {
             if (!usdPrice) return 'Upon Request';
-            const price = currentCurrency === 'USD' ? usdPrice : usdPrice * exchangeRate;
-            return new Intl.NumberFormat('en-US', { style: 'currency', currency: currentCurrency, maximumFractionDigits: 0 }).format(price);
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(usdPrice);
         }
 
         function updateCurrencyDisplay() {
@@ -437,8 +427,6 @@
                 const usd = parseFloat(el.getAttribute('data-usd'));
                 el.textContent = formatPrice(usd);
             });
-            const ct = document.getElementById('currency-toggle');
-            if (ct) ct.textContent = currentCurrency;
         }
 
         function applyLanguage() {
@@ -473,12 +461,6 @@
             applyLanguage();
         });
 
-        document.getElementById('currency-toggle').addEventListener('click', () => {
-            currentCurrency = currentCurrency === 'USD' ? 'EGP' : 'USD';
-            localStorage.setItem('currency', currentCurrency);
-            updateCurrencyDisplay();
-        });
-
         // Mobile Menu
         const menuBtn = document.getElementById('mobile-menu-btn');
         const drawer = document.getElementById('mobile-drawer');
@@ -496,14 +478,6 @@
                 currentLang = currentLang === 'en' ? 'ar' : 'en';
                 localStorage.setItem('lang', currentLang);
                 applyLanguage();
-            });
-        }
-        const mobileCurrency = document.getElementById('mobile-currency-toggle');
-        if (mobileCurrency) {
-            mobileCurrency.addEventListener('click', () => {
-                currentCurrency = currentCurrency === 'USD' ? 'EGP' : 'USD';
-                localStorage.setItem('currency', currentCurrency);
-                updateCurrencyDisplay();
             });
         }
 

@@ -93,7 +93,6 @@
 
             <!-- Toggles -->
             <button id="lang-toggle" class="nav-toggle-btn">AR</button>
-            <button id="currency-toggle" class="nav-toggle-btn" data-currency="USD">USD</button>
         </div>
 
         <!-- Mobile Menu Button -->
@@ -110,7 +109,6 @@
         <a class="text-2xl font-bold uppercase text-white mb-6" href="about.html" data-i18n="nav_about">About</a>
         <a class="text-2xl font-bold uppercase text-white mb-12" href="contact.html" data-i18n="nav_contact">Contact</a>
         <button id="mobile-lang-toggle" class="nav-toggle-btn text-left mb-4 w-fit">Switch to AR</button>
-        <button id="mobile-currency-toggle" class="nav-toggle-btn text-left w-fit">Switch Currency</button>
     </div>
 
     <main class="min-h-screen pt-32 pb-12 px-4 md:px-12 max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 w-full flex-grow">
@@ -320,8 +318,6 @@
 
         // ==== Global Logic ====
         let currentLang = localStorage.getItem('lang') || 'en';
-        let currentCurrency = localStorage.getItem('currency') || 'USD';
-        let exchangeRate = 1;
         let translations = {};
 
         async function initGlobal() {
@@ -330,13 +326,7 @@
                 const transRes = await fetch('translations.json').then(r => r.json());
                 translations = transRes;
                 applyLanguage();
-                if (typeof updateCurrencyDisplay === 'function') {
-                    updateCurrencyDisplay();
-                } else {
-                    import('./events.js').then(m => m.applyEventTheme()).catch(e => console.error(e));
-                const cToggle = document.getElementById('currency-toggle');
-                    if (cToggle) cToggle.textContent = currentCurrency;
-                }
+                import('./events.js').then(m => m.applyEventTheme()).catch(e => console.error(e));
             } catch (err) {
                 console.error("Global init error:", err);
             }
@@ -385,24 +375,7 @@
             });
         }
 
-        const currToggleBtn = document.getElementById('currency-toggle');
-        if(currToggleBtn) {
-            currToggleBtn.addEventListener('click', () => {
-                currentCurrency = currentCurrency === 'USD' ? 'EGP' : 'USD';
-                localStorage.setItem('currency', currentCurrency);
-                currToggleBtn.textContent = currentCurrency;
-                if (typeof updateCurrencyDisplay === 'function') updateCurrencyDisplay();
-            });
-        }
 
-        const mcurrToggleBtn = document.getElementById('mobile-currency-toggle');
-        if(mcurrToggleBtn) {
-            mcurrToggleBtn.addEventListener('click', () => {
-                currentCurrency = currentCurrency === 'USD' ? 'EGP' : 'USD';
-                localStorage.setItem('currency', currentCurrency);
-                if (typeof updateCurrencyDisplay === 'function') updateCurrencyDisplay();
-            });
-        }
 
         initGlobal();
 

@@ -86,7 +86,6 @@
 
             <!-- Toggles -->
             <button id="lang-toggle" class="nav-toggle-btn">AR</button>
-            <button id="currency-toggle" class="nav-toggle-btn" data-currency="USD">USD</button>
         </div>
 
         <!-- Mobile Menu Button -->
@@ -103,7 +102,6 @@
         <a class="text-2xl font-bold uppercase text-white mb-6" href="about.html" data-i18n="nav_about">About</a>
         <a class="text-2xl font-bold uppercase text-white mb-12" href="contact.html" data-i18n="nav_contact">Contact</a>
         <button id="mobile-lang-toggle" class="nav-toggle-btn text-left mb-4 w-fit">Switch to AR</button>
-        <button id="mobile-currency-toggle" class="nav-toggle-btn text-left w-fit">Switch Currency</button>
     </div>
 
     <!-- Main Content -->
@@ -131,6 +129,13 @@
                         <div class="w-2.5 h-2.5 rounded-full bg-primary opacity-0 peer-checked:opacity-100 transition-opacity"></div>
                     </div>
                     <span class="text-white font-bold uppercase tracking-widest text-sm group-hover:text-primary transition-colors" data-i18n="form_sell_vehicle">Sell Vehicle</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer group">
+                    <input type="radio" name="request_type" value="sell_for_you" class="peer sr-only" />
+                    <div class="w-5 h-5 rounded-full border-2 border-outline-variant peer-checked:border-primary flex items-center justify-center transition-colors">
+                        <div class="w-2.5 h-2.5 rounded-full bg-primary opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                    </div>
+                    <span class="text-white font-bold uppercase tracking-widest text-sm group-hover:text-primary transition-colors" data-i18n="form_sell_for_you">Selling for you</span>
                 </label>
             </div>
 
@@ -222,11 +227,9 @@
         import { createMessage } from './messages.js';
         import { uploadImage } from './storage.js';
 
-        // Language & Currency State
+        // Language State
         let currentLang = localStorage.getItem('lang') || 'en';
-        let currentCurrency = localStorage.getItem('currency') || 'USD';
         let translations = {};
-        let exchangeRate = 50.0;
 
         async function initSettings() {
             try {
@@ -262,15 +265,7 @@
             if(mlt) mlt.textContent = currentLang === 'en' ? 'Switch to AR' : 'Switch to EN';
         }
 
-        function updateCurrencyDisplay() {
-            const btn = document.getElementById('currency-toggle');
-            if (btn) btn.textContent = currentCurrency;
-            const mbtn = document.getElementById('mobile-currency-toggle');
-            if (mbtn) mbtn.textContent = 'Currency: ' + currentCurrency;
-        }
-
         initSettings();
-        updateCurrencyDisplay();
 
         // Map Initialization
         const map = L.map('location-map').setView([30.0444, 31.2357], 12); // Default to Cairo
@@ -337,16 +332,7 @@
             localStorage.setItem('lang', currentLang);
             applyLanguage();
         });
-        document.getElementById('currency-toggle')?.addEventListener('click', () => {
-            currentCurrency = currentCurrency === 'USD' ? 'EGP' : 'USD';
-            localStorage.setItem('currency', currentCurrency);
-            updateCurrencyDisplay();
-        });
-        document.getElementById('mobile-currency-toggle')?.addEventListener('click', () => {
-            currentCurrency = currentCurrency === 'USD' ? 'EGP' : 'USD';
-            localStorage.setItem('currency', currentCurrency);
-            updateCurrencyDisplay();
-        });
+
 
         // Nav Toggle
         const navToggle = document.getElementById('mobile-menu-btn');
@@ -427,7 +413,9 @@
             try {
                 // Determine Mode
                 const reqType = document.querySelector('input[name="request_type"]:checked').value;
-                const typeLabel = reqType === 'trade' ? 'TRADE' : 'SELL';
+                let typeLabel = 'SELL';
+                if (reqType === 'trade') typeLabel = 'TRADE';
+                else if (reqType === 'sell_for_you') typeLabel = 'SELL FOR YOU';
                 
                 // Get form values
                 const name = document.getElementById('f-name').value;

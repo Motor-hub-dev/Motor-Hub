@@ -110,7 +110,6 @@
 
             <!-- Toggles -->
             <button id="lang-toggle" class="nav-toggle-btn">AR</button>
-            <button id="currency-toggle" class="nav-toggle-btn" data-currency="USD">USD</button>
         </div>
 
         <!-- Mobile Menu Button -->
@@ -127,7 +126,6 @@
         <a class="text-2xl font-bold uppercase text-white mb-6" href="about.html" data-i18n="nav_about">About</a>
         <a class="text-2xl font-bold uppercase text-white mb-12" href="contact.html" data-i18n="nav_contact">Contact</a>
         <button id="mobile-lang-toggle" class="nav-toggle-btn text-left mb-4 w-fit">Switch to AR</button>
-        <button id="mobile-currency-toggle" class="nav-toggle-btn text-left w-fit">Switch Currency</button>
     </div>
 
     <main class="pt-28 pb-24 px-4 md:px-12 max-w-[1600px] mx-auto w-full">
@@ -153,13 +151,7 @@
                     </div>
                 </div>
 
-                <!-- Color Filter -->
-                <div class="flex flex-col gap-2">
-                    <span class="text-[10px] uppercase tracking-widest text-outline-variant font-bold" data-i18n="inv_ext_color">Exterior Color</span>
-                    <div id="color-dots" class="flex flex-wrap gap-3">
-                        <!-- Injected via JS -->
-                    </div>
-                </div>
+
 
                 <!-- Price Slider -->
                 <div class="flex flex-col gap-2">
@@ -222,10 +214,8 @@
         let allBrands = [];
         let allCategories = [];
         let selectedBrandId = '';
-        let selectedColorHex = '';
 
-        // Currency state
-        let currentCurrency = localStorage.getItem('currency') || 'USD';
+
         let exchangeRate = 50; // fallback
 
         // Try to load exchange rate from settings
@@ -242,7 +232,6 @@
         const priceMin = document.getElementById('price-min');
         const priceMax = document.getElementById('price-max');
         const priceDisplay = document.getElementById('price-display');
-        const colorDotsContainer = document.getElementById('color-dots');
         
         const finDown = document.getElementById('fin-down');
         const finMonth = document.getElementById('fin-month');
@@ -250,8 +239,8 @@
 
         function formatPriceFull(egpPrice) {
             if (!egpPrice) return 'Upon Request';
-            const price = currentCurrency === 'EGP' ? egpPrice : egpPrice / exchangeRate;
-            return new Intl.NumberFormat('en-US', { style: 'currency', currency: currentCurrency, maximumFractionDigits: 0 }).format(price);
+            const price = egpPrice / exchangeRate;
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(price);
         }
 
         async function init() {
@@ -317,46 +306,7 @@
                 categorySelect.appendChild(opt);
             });
 
-            // Extract Unique Colors
-            const uniqueColors = new Map();
-            allVehicles.forEach(v => {
-                if (v.colors) {
-                    v.colors.forEach(c => {
-                        if (c.hex && !uniqueColors.has(c.hex)) {
-                            uniqueColors.set(c.hex, c.name);
-                        }
-                    });
-                }
-            });
 
-            const allColorBtn = document.createElement('button');
-            allColorBtn.className = 'w-6 h-6 rounded-full border-2 border-primary color-dot flex items-center justify-center';
-            allColorBtn.style.background = 'conic-gradient(red, yellow, green, cyan, blue, magenta, red)';
-            allColorBtn.setAttribute('data-hex', '');
-            allColorBtn.title = "All Colors";
-            colorDotsContainer.appendChild(allColorBtn);
-
-            uniqueColors.forEach((name, hex) => {
-                const btn = document.createElement('button');
-                btn.className = 'w-6 h-6 rounded-full border-2 border-transparent hover:border-white transition-colors color-dot';
-                btn.style.backgroundColor = hex;
-                btn.setAttribute('data-hex', hex);
-                btn.title = name;
-                colorDotsContainer.appendChild(btn);
-            });
-
-            // Handle Color Click
-            document.querySelectorAll('.color-dot').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.color-dot').forEach(b => b.classList.replace('border-primary', 'border-transparent'));
-                    e.target.classList.replace('border-transparent', 'border-primary');
-                    if (e.target === allColorBtn) {
-                        e.target.classList.add('border-primary');
-                    }
-                    selectedColorHex = e.target.getAttribute('data-hex');
-                    filterAndRender();
-                });
-            });
 
             // Dynamically set price boundaries based on inventory using EGP
             const prices = allVehicles.map(v => v.price_egp).filter(p => typeof p === 'number');
@@ -386,18 +336,10 @@
 
             if (minP > maxP) { const tmp = minP; minP = maxP; maxP = tmp; }
 
-            // Update price display dynamically with currency
-            if (currentCurrency === 'EGP') {
-                const minEGP = minP * exchangeRate;
-                const maxEGP = maxP;
-                const fmtMin = new Intl.NumberFormat('en-US').format(minEGP) + ' EGP';
-                const fmtMax = new Intl.NumberFormat('en-US').format(maxEGP) + (maxP === parseInt(priceMax.max) ? '+ EGP' : ' EGP');
-                priceDisplay.textContent = `${fmtMin} – ${fmtMax}`;
-            } else {
-                const fmtMin = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(minP / exchangeRate);
-                const fmtMax = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(maxP / exchangeRate) + (maxP === parseInt(priceMax.max) ? '+' : '');
-                priceDisplay.textContent = `${fmtMin} – ${fmtMax}`;
-            }
+            // Update price display dynamically
+            const fmtMin = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(minP / exchangeRate);
+            const fmtMax = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(maxP / exchangeRate) + (maxP === parseInt(priceMax.max) ? '+' : '');
+            priceDisplay.textContent = `${fmtMin} – ${fmtMax}`;
 
             let financeMaxEgp = Infinity;
             if (finDown.value && finMonth.value && finYears.value) {
@@ -413,12 +355,8 @@
                 const matchSearch = v.name.toLowerCase().includes(searchTerm) || (v.name_ar && v.name_ar.includes(searchTerm)) || (v.version && v.version.toLowerCase().includes(searchTerm));
                 const matchBrand = !selectedBrandId || v.brand_id === selectedBrandId;
                 const matchCategory = !categoryId || v.category_id === categoryId;
-                let matchColor = !selectedColorHex;
-                if (selectedColorHex && v.colors) {
-                    matchColor = v.colors.some(c => c.hex === selectedColorHex);
-                }
                 const matchPrice = !v.price_egp || (v.price_egp >= minP && v.price_egp <= maxP && v.price_egp <= financeMaxEgp);
-                return matchSearch && matchBrand && matchCategory && matchColor && matchPrice;
+                return matchSearch && matchBrand && matchCategory && matchPrice;
             });
 
             renderGrid(filtered);
@@ -581,8 +519,6 @@
 
         // ==== Global Logic ====
         let currentLang = localStorage.getItem('lang') || 'en';
-        let currentCurrency = localStorage.getItem('currency') || 'USD';
-        let exchangeRate = 1;
         let translations = {};
 
         async function initGlobal() {
@@ -591,13 +527,7 @@
                 const transRes = await fetch('translations.json').then(r => r.json());
                 translations = transRes;
                 applyLanguage();
-                if (typeof updateCurrencyDisplay === 'function') {
-                    updateCurrencyDisplay();
-                } else {
-                    import('./events.js').then(m => m.applyEventTheme()).catch(e => console.error(e));
-                const cToggle = document.getElementById('currency-toggle');
-                    if (cToggle) cToggle.textContent = currentCurrency;
-                }
+                import('./events.js').then(m => m.applyEventTheme()).catch(e => console.error(e));
             } catch (err) {
                 console.error("Global init error:", err);
             }
@@ -646,24 +576,7 @@
             });
         }
 
-        const currToggleBtn = document.getElementById('currency-toggle');
-        if(currToggleBtn) {
-            currToggleBtn.addEventListener('click', () => {
-                currentCurrency = currentCurrency === 'USD' ? 'EGP' : 'USD';
-                localStorage.setItem('currency', currentCurrency);
-                currToggleBtn.textContent = currentCurrency;
-                if (typeof updateCurrencyDisplay === 'function') updateCurrencyDisplay();
-            });
-        }
 
-        const mcurrToggleBtn = document.getElementById('mobile-currency-toggle');
-        if(mcurrToggleBtn) {
-            mcurrToggleBtn.addEventListener('click', () => {
-                currentCurrency = currentCurrency === 'USD' ? 'EGP' : 'USD';
-                localStorage.setItem('currency', currentCurrency);
-                if (typeof updateCurrencyDisplay === 'function') updateCurrencyDisplay();
-            });
-        }
 
         initGlobal();
 

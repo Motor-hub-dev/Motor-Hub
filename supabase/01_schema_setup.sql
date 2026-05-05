@@ -35,7 +35,6 @@ CREATE TABLE IF NOT EXISTS public.products (
     description TEXT,
     image_url TEXT,
     gallery JSONB DEFAULT '[]'::jsonb,
-    colors JSONB DEFAULT '[]'::jsonb,
     diagnostics_url TEXT,
     brand_id UUID REFERENCES public.brands(id) ON DELETE SET NULL,
     category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
